@@ -1,4 +1,4 @@
-name: Build release artifact for team-a flux configuration
+name: Promote config from dev to staging
 
 on:
   workflow_dispatch:
