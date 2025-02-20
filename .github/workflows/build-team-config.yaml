@@ -32,12 +32,12 @@ jobs:
                 echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
                 container_registry=ghcr.io/${{ github.repository }}
                 flux push artifact oci://${container_registry}/flux-config:$(git rev-parse --short HEAD) \
-                    --provider=azure \
+                    --provider=generic \
                     --reproducible \
                     --path="." \
                     --source="$(git config --get remote.origin.url)" \
                     --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push flux config" >&2
                 flux tag artifact oci://${container_registry}/flux-config:$(git rev-parse --short HEAD) \
-                    --provider=azure \
+                    --provider=generic \
                     --tag dev || echo "Failed to tag flux config" >&2
           
