@@ -26,6 +26,6 @@ jobs:
                 echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
                 container_registry=ghcr.io/${{ github.repository }}
                 flux tag artifact oci://${container_registry}/flux-config:dev \
-                    --provider=azure \
+                    --provider=generic \
                     --tag staging || echo "Failed to tag flux config" >&2
           
