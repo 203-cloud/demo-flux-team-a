@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: oci://sunbeamfluxacr.azurecr.io/artifact/podinfo
+  url: oci://ghcr.io/203-cloud/demo-flux-team-a/podinfo
   provider: azure
   ref:
     tag: latest

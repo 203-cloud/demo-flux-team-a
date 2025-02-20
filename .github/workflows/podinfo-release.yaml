@@ -1,5 +1,8 @@
 name: Build release artifact for podinfo
 
+env:
+    ARTIFACT_NAME: podinfo
+
 on:
   push:
     branches:
@@ -20,7 +23,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         defaults:
             run:
-                working-directory: ./podinfo/deploy
+                working-directory: ./${{ env.ARTIFACT_NAME }}/deploy
         runs-on: ubuntu-latest
         steps:
           - name: Checkout
@@ -33,21 +36,22 @@ jobs:
             run: |
                 echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
                 container_registry=ghcr.io/${{ github.repository }}
-                flux push artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                artifact_name=${{ env.ARTIFACT_NAME }}
+                flux push artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
                     --provider=generic \
                     --reproducible \
                     --path="." \
                     --source="$(git config --get remote.origin.url)" \
-                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact" >&2
-                flux tag artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact_name" >&2
+                flux tag artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
                     --provider=generic \
-                    --tag latest || echo "Failed to tag $artifact" >&2
+                    --tag latest || echo "Failed to tag $artifact_name" >&2
     release:
         name: Build release from tag
         if: github.ref == 'refs/tags/podinfo-v*'
         defaults:
             run:
-                working-directory: ./podinfo/deploy
+                working-directory: ./${{ env.ARTIFACT_NAME }}/deploy
         runs-on: ubuntu-latest
         steps:
           - name: Checkout
@@ -59,19 +63,20 @@ jobs:
           - name: Git tag
             id: git_tag
             run: |
-                tag=${GITHUB_REF/refs\/tags\/podinfo-/}
+                tag=${GITHUB_REF/refs\/tags\/${{ env.ARTIFACT_NAME }}-/}
                 echo "tag=${tag}" >> $GITHUB_OUTPUT
           - name: Build release artifact
             run: |
                 echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
                 container_registry=ghcr.io/${{ github.repository }}
-                flux push artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                artifact_name=${{ env.ARTIFACT_NAME }}
+                flux push artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
                     --provider=azure \
                     --reproducible \
                     --path="." \
                     --source="$(git config --get remote.origin.url)" \
-                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact" >&2
-                flux tag artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact_name" >&2
+                flux tag artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
                     --provider=azure \
-                    --tag ${{ steps.git_tag.outputs.tag }} || echo "Failed to tag $artifact" >&2
+                    --tag ${{ steps.git_tag.outputs.tag }} || echo "Failed to tag $artifact_name" >&2
           
