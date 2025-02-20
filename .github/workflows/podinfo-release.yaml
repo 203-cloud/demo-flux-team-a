@@ -1,0 +1,77 @@
+name: Build release artifact for podinfo
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - 'podinfo/deploy/**'
+      - '.github/workflows/podinfo-release.yaml'
+    tags:
+      - 'podinfo-v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+    latest:
+        name: Build latest from main
+        if: github.ref == 'refs/heads/main'
+        defaults:
+            run:
+                working-directory: ./podinfo/deploy
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Setup flux
+            uses: fluxcd/flux2/action@main
+            with:
+              version: latest
+          - name: Build latest artifact
+            run: |
+                echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+                container_registry=ghcr.io/${{ github.repository }}
+                flux push artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --provider=generic \
+                    --reproducible \
+                    --path="." \
+                    --source="$(git config --get remote.origin.url)" \
+                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact" >&2
+                flux tag artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --provider=generic \
+                    --tag latest || echo "Failed to tag $artifact" >&2
+    release:
+        name: Build release from tag
+        if: github.ref == 'refs/tags/podinfo-v*'
+        defaults:
+            run:
+                working-directory: ./podinfo/deploy
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Setup flux
+            uses: fluxcd/flux2/action@main
+            with:
+              version: latest
+          - name: Git tag
+            id: git_tag
+            run: |
+                tag=${GITHUB_REF/refs\/tags\/podinfo-/}
+                echo "tag=${tag}" >> $GITHUB_OUTPUT
+          - name: Build release artifact
+            run: |
+                echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+                container_registry=ghcr.io/${{ github.repository }}
+                flux push artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --provider=azure \
+                    --reproducible \
+                    --path="." \
+                    --source="$(git config --get remote.origin.url)" \
+                    --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact" >&2
+                flux tag artifact oci://${container_registry}/podinfo:$(git rev-parse --short HEAD) \
+                    --provider=azure \
+                    --tag ${{ steps.git_tag.outputs.tag }} || echo "Failed to tag $artifact" >&2
+          

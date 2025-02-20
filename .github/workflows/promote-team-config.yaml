@@ -1,0 +1,31 @@
+name: Build release artifact for team-a flux configuration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+    latest:
+        name: Promote dev to staging
+        defaults:
+            run:
+                working-directory: ./deploy
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Setup flux
+            uses: fluxcd/flux2/action@main
+            with:
+              version: latest
+          - name: Build latest artifact
+            run: |
+                echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+                container_registry=ghcr.io/${{ github.repository }}
+                flux tag artifact oci://${container_registry}/flux-config:dev \
+                    --provider=azure \
+                    --tag staging || echo "Failed to tag flux config" >&2
+          
