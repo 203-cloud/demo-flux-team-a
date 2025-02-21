@@ -16,6 +16,7 @@ spec:
       containers:
       - name: demo-app
         image: ghcr.io/203-cloud/demo-app:latest
+        env: []
         ports:
         - name: http
           containerPort: 8080
