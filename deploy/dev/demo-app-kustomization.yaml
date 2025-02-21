@@ -18,6 +18,7 @@ spec:
   patches:
     - target:
         kind: IngressRoute
+        name: demo-app
       patch: |-
         - op: replace
           path: /spec/routes/0/match

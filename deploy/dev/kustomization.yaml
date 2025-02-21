@@ -7,4 +7,5 @@ resources:
 patches:
   - target:
       kind: Kustomization
+      name: podinfo
     path: values.yaml
