@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - demo-app/*
+      - demo-app/deploy/*
       - .github/workflows/demo-app-main.yaml
 
 env:
