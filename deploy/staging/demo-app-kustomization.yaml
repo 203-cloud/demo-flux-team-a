@@ -30,6 +30,6 @@ spec:
       patch: |-
         - op: add
           path: /spec/template/spec/containers/0/env/-
-          value: |
+          value:
             name: MESSAGE
             value: "Hello from staging"
