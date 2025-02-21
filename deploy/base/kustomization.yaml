@@ -4,3 +4,4 @@ namespace: flux-system
 resources:
 - podinfo-source.yaml
 - podinfo-kustomization.yaml
+- demo-app-source.yaml
