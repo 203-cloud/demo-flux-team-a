@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
-  name: podinfo
-  namespace: flux-system
+  name: demo-app
 spec:
   interval: 1m
   url: oci://ghcr.io/203-cloud/demo-flux-team-a/demo-app-release
