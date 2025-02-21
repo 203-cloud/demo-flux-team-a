@@ -5,7 +5,7 @@ metadata:
 spec:
   sourceRef:
     kind: OCIRepository
-    name: podinfo
+    name: demo-app
   interval: 5m
   retryInterval: 5m
   path: ./
