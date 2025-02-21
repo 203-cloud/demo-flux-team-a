@@ -9,14 +9,16 @@ on:
 
 env:
   ko_version: 0.17.1
+  ARTIFACT_NAME: demo-app
+
 
 jobs:
-  publish_github:
+  publish_image:
     name: Build latest and publish to ghcr
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: demo-app
+        working-directory: ${{ env.ARTIFACT_NAME }}
     permissions:
       packages: write
     steps:
@@ -26,7 +28,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'demo-app/go.mod'
+          go-version-file: '${{ env.ARTIFACT_NAME }}/go.mod'
 
       - name: Build
         env:
@@ -44,3 +46,31 @@ jobs:
         run: |
           ./ko login ghcr.io --username $GITHUB_REPOSITORY_OWNER --password ${{ secrets.GITHUB_TOKEN }}
           ./ko build -B .
+  publish_manifest:
+    name: Build latest and publish to ghcr
+    if: github.ref == 'refs/heads/main'
+    defaults:
+        run:
+            working-directory: ./${{ env.ARTIFACT_NAME }}/deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup flux
+        uses: fluxcd/flux2/action@main
+        with:
+          version: latest
+      - name: Build latest artifact
+        run: |
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+            container_registry=ghcr.io/${{ github.repository }}
+            artifact_name=${{ env.ARTIFACT_NAME }}-release
+            flux push artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
+                --provider=generic \
+                --reproducible \
+                --path="." \
+                --source="$(git config --get remote.origin.url)" \
+                --revision="$(git branch --show-current)/$(git rev-parse HEAD)" || echo "Failed to push $artifact_name" >&2
+            flux tag artifact oci://${container_registry}/${artifact_name}:$(git rev-parse --short HEAD) \
+                --provider=generic \
+                --tag latest || echo "Failed to tag $artifact_name" >&2

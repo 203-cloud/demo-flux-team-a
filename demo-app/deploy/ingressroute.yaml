@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: demo-app
+  namespace: demo-app
+spec:
+  entryPoints:
+    - http
+    - https
+  routes:
+    - match: PathPrefix(`/demo-app`) || Path(`/demo-app`)
+      kind: Rule
+      services:
+        - name: demo-app
+          port: 80
+      middlewares:
+        - name: demo-app-prefix
