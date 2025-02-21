@@ -14,7 +14,7 @@ env:
 
 jobs:
   publish_image:
-    name: Build latest and publish to ghcr
+    name: Build latest image and publish to ghcr
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,12 +47,14 @@ jobs:
           ./ko login ghcr.io --username $GITHUB_REPOSITORY_OWNER --password ${{ secrets.GITHUB_TOKEN }}
           ./ko build -B .
   publish_manifest:
-    name: Build latest and publish to ghcr
+    name: Build latest manifest and publish to ghcr
     if: github.ref == 'refs/heads/main'
     defaults:
         run:
             working-directory: ./${{ env.ARTIFACT_NAME }}/deploy
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
