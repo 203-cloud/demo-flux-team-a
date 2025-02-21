@@ -20,7 +20,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "` + message + `"}`))
+		w.Write([]byte(`{"message": "prefix-` + message + `"}`))
 	})
 	web.ServeGraceful(port)
 }
