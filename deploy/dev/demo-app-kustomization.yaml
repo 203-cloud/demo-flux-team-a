@@ -17,6 +17,12 @@ spec:
       newTag: latest
   patches:
     - target:
+        kind: IngressRoute
+      patch: |-
+        - op: replace
+          path: /spec/routes/0/match
+          value: Host(`flux-dev.203.cloud`) && (PathPrefix(`/demo-app/`) || Path(`/demo-app`))
+    - target:
         group: apps
         version: v1
         kind: Deployment
